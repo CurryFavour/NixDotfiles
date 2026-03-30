@@ -8,19 +8,16 @@ import "Components"
 ShellRoot {
     id: root
 
-    // Modular Shell Container handles all UI components
     ShellContainer {
         id: shellContainer
         anchors.fill: parent
     }
     
-    // Top Bar (separate as it's always visible)
     TopBar {
         id: bar
         theme: shellContainer.theme
     }
     
-    // IPC Handlers (need to be in main shell context)
     IpcHandler {
         target: "launcher"
         function toggle() {
@@ -39,6 +36,13 @@ ShellRoot {
         target: "notification"
         function toggle() {
             shellContainer.panelManager.notifications.toggleState();
+        }
+    }
+
+    IpcHandler {
+        target: "wallpaper"
+        function toggle() {
+            shellContainer.panelManager.wallpaper.toggleState();
         }
     }
 }

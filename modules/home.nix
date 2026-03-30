@@ -66,21 +66,27 @@
     };
   };
 
-  services.hyprpaper.enable = true;
+  services.hyprpaper.enable = false;
+  services.swww.enable = true;
   programs.prismlauncher.enable = true;
   # services.mako.enable = true; # qs manages my notifs
 
   programs.git = {
     enable = true;
-    userName = "CurryFavour";
 
-    extraConfig = {
-      user.email = "$(cat ${config.sops.secrets.git_email.path})";
+    settings = {
+      user = {
+        name = "CurryFavour";
+        email = "$(cat ${config.sops.secrets.git_email.path})";
+      };
       credential.helper = "!f() { echo password=$(cat ${config.sops.secrets.github_token.path}); }; f";
       init.defaultBranch = "main";
     };
   };
 
   gtk.gtk4.theme = config.gtk.theme;
-  stylix.targets.qt.enable = false;
+  stylix.targets = {
+    qt.enable = false;
+    hyprland.hyprpaper.enable = false;
+  };
 }

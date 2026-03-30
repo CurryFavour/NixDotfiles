@@ -109,13 +109,13 @@
 
   stylix = {
     enable = true;
-    image = ./Wallpapers/gruvbox_light_linux.png;
+    image = ./Wallpapers/imgick/gruvboxgram.jpg;
     base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-light-soft.yaml";
     override = {
       base00 = "e1d6a9";
       base01 = "e1d6a9";
     };
-    polarity = "dark";
+    polarity = "light";
     autoEnable = true;
 
     icons = {
