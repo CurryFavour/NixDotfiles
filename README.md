@@ -17,6 +17,7 @@ SUPER + T = Terminal <br>
 SUPER + A = Launcher <br>
 SUPER + V = Clipboard <br>
 SUPER + B = Notification history <br>
+SUPER + R = Wallpaper manager (WIP)<br>
 SUPER + N = Screenshot (Region) <br>
 SUPER + 1-0  = Change workspace <br>
 SUPER + HJKL = Change focus <br>
