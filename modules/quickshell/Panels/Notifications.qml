@@ -8,29 +8,85 @@ PanelWindow {
     id: printerWindow
     
     screen: Quickshell.screens[0] 
-    
     property QtObject theme
     
-    visible: false
+    visible: windowHeight > 0 || currentPaperHeight > 0
     WlrLayershell.layer: WlrLayer.Overlay
-    
     WlrLayershell.keyboardFocus: printerWindow.visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     
-    anchors { top: true; bottom: true; left: true; right: true }
+    anchors { top: true }
+    
+    implicitWidth: 360
+    implicitHeight: windowHeight + 40 
+    exclusiveZone: 0
     color: "transparent"
 
-    property bool isPrinting: false
+    property bool isOpen: false
+    property real targetPaperHeight: 0
     property real currentPaperHeight: 0
+    property real windowHeight: 0 
     property real maxPaperHeight: 460 
     
     property int visibleCount: 2
-
     property var allNotifications: []
     property var currentNotifications: []
 
+    NumberAnimation {
+        id: openAnim
+        target: printerWindow
+        property: "currentPaperHeight"
+        duration: 350
+        easing.type: Easing.OutCubic
+        onFinished: {
+            if (isOpen) windowHeight = targetPaperHeight; 
+        }
+    }
+
+    SequentialAnimation {
+        id: closeAnim
+        NumberAnimation {
+            target: printerWindow
+            property: "currentPaperHeight"
+            to: 0
+            duration: 300
+            easing.type: Easing.InCubic
+        }
+        ScriptAction {
+            script: {
+                windowHeight = 0; 
+            }
+        }
+    }
+
+    function updateHeight() {
+        if (isOpen) {
+            let baseHeight = allNotifications.length === 0 ? 80 : paperList.contentHeight + 30;
+            targetPaperHeight = Math.min(maxPaperHeight, baseHeight);
+            
+            closeAnim.stop();
+            
+            if (targetPaperHeight > windowHeight) {
+                windowHeight = targetPaperHeight; 
+            }
+            
+            openAnim.to = targetPaperHeight;
+            openAnim.restart();
+        } else {
+            openAnim.stop();
+            closeAnim.restart();
+        }
+    }
+
+    Connections {
+        target: paperList
+        function onContentHeightChanged() {
+            if (isOpen) updateHeight();
+        }
+    }
+
     Timer {
         id: autoCloseTimer
-        onTriggered: printerWindow.hidePopup()
+        onTriggered: hidePopup()
     }
 
     NotificationServer {
@@ -62,11 +118,7 @@ PanelWindow {
             printerWindow.allNotifications = arr;
 
             if (isNewNotification) {
-                if (printerWindow.visible) {
-                    printerWindow.visibleCount = Math.min(printerWindow.visibleCount + 1, 5);
-                } else {
-                    printerWindow.visibleCount = 1;
-                }
+                printerWindow.visibleCount = isOpen ? Math.min(printerWindow.visibleCount + 1, 5) : 1;
             }
             
             printerWindow.updateModel();
@@ -74,13 +126,14 @@ PanelWindow {
             let timeoutMs = (notification.expireTimeout !== undefined && notification.expireTimeout > 0) 
                             ? notification.expireTimeout * 1000 : 5000;
                             
-            printerWindow.showPopup(timeoutMs);
+            showPopup(timeoutMs);
         }
     }
 
     function updateModel() {
         let startIndex = Math.max(0, allNotifications.length - visibleCount);
         currentNotifications = allNotifications.slice(startIndex);
+        Qt.callLater(updateHeight); 
     }
 
     Timer {
@@ -89,128 +142,158 @@ PanelWindow {
         onTriggered: paperList.forceActiveFocus()
     }
 
-    Timer {
-        id: printTimer
-        interval: 35 
-        repeat: true
-        onTriggered: {
-            if (isPrinting) {
-                let targetHeight = printerWindow.allNotifications.length === 0 ?
-                    80 : Math.min(maxPaperHeight, paperList.contentHeight + 8);
-                
-                if (currentPaperHeight < targetHeight) {
-                    currentPaperHeight += 18;
-                    if (currentPaperHeight >= targetHeight) {
-                        currentPaperHeight = targetHeight;
-                        running = false; 
-                    }
-                } else if (currentPaperHeight > targetHeight) {
-                    currentPaperHeight = targetHeight;
-                    running = false;
-                } else {
-                    running = false;
-                }
-            } else {
-                currentPaperHeight -= 56;
-                if (currentPaperHeight <= 0) {
-                    currentPaperHeight = 0;
-                    running = false;
-                    printerWindow.visible = false; 
-                }
-            }
-        }
-    }
-
     function showPopup(timeoutMs) {
-        if (!visible) {
-            visible = true;
-            isPrinting = true;
-            currentPaperHeight = 0;
-            printTimer.start();
-        } else if (!isPrinting) {
-            isPrinting = true;
-            printTimer.start();
-        }
-        
+        isOpen = true;
+        updateHeight();
         autoCloseTimer.interval = timeoutMs;
         autoCloseTimer.restart();
     }
 
     function hidePopup() {
-        if (visible && isPrinting) {
-            isPrinting = false;
-            printTimer.start();
-        }
+        isOpen = false;
+        updateHeight();
     }
 
     function toggleState() {
-        if (visible) {
+        if (isOpen) {
             hidePopup();
         } else {
             visibleCount = Math.max(2, Math.min(allNotifications.length, 5)); 
             updateModel();
             autoCloseTimer.stop(); 
             
-            visible = true;
-            isPrinting = true;
-            currentPaperHeight = 0;
+            isOpen = true;
+            updateHeight();
             
             if (currentNotifications.length > 0) {
                 paperList.currentIndex = currentNotifications.length - 1;
             }
             
-            printTimer.start();
             focusTimer.start();
         }
     }
 
-    MouseArea { 
+    MouseArea {
         anchors.fill: parent
-        enabled: printerWindow.visible 
-        onClicked: printerWindow.hidePopup() 
+        enabled: printerWindow.visible
+        onClicked: hidePopup()
     }
 
     Rectangle {
+        id: hardwareSlot
         anchors.top: parent.top
-        anchors.topMargin: 0
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 360; height: 4; color: theme.shadow; opacity: 0.8; radius: 2
+        width: 360; height: 6
+        color: "#111" 
+        radius: 2
+        border.color: theme.shadow || "#333"; border.width: 1
+        z: 2 
     }
 
     Item {
         id: printSlot
-        anchors.top: parent.top
-        anchors.topMargin: 2 
+        anchors.top: hardwareSlot.bottom
+        anchors.topMargin: -2 
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 340 
-        clip: true 
-        height: currentPaperHeight 
+        width: 360 
+        clip: true
+        height: currentPaperHeight > 0 ? currentPaperHeight + 26 : 0
 
         HoverHandler {
             id: printerHover
         }
 
-        Rectangle {
-            id: paperBg
-            anchors.fill: parent 
-            color: theme.bgDim 
+        // --- 1. SOLID DROP SHADOW ---
+        Item {
+            id: shadowWrapper
+            height: targetPaperHeight > 0 ? targetPaperHeight + 6 : currentPaperHeight + 10 
+            width: 340
+            x: 14
+            anchors.top: parent.top
+            anchors.topMargin: 0 // Pushes the shadow 6px below the paper
+            visible: currentPaperHeight > 0
             
-            Rectangle { anchors.left: parent.left; width: 1; height: parent.height; color: theme.fgMuted }
-            Rectangle { anchors.right: parent.right; width: 1; height: parent.height; color: theme.fgMuted }
+            // Solid rectangular shadow block[cite: 2]
+            Rectangle {
+                anchors.fill: parent
+                color: theme.shadow 
+            }
 
-            Column {
-                anchors.left: parent.left; anchors.leftMargin: 4; anchors.top: parent.top; anchors.bottom: parent.bottom
-                anchors.topMargin: 4; anchors.bottomMargin: 4; spacing: 12; clip: true
-                Repeater { model: Math.ceil(maxPaperHeight / 18); Rectangle { width: 6; height: 6; radius: 3; color: "transparent"; border.color: theme.fgMuted } }
+            // Solid jagged teeth for the shadow[cite: 2]
+            Row {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: -10 
+                anchors.left: parent.left
+                Repeater {
+                    model: 17 
+                    Item {
+                        width: 20; height: 20
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 14.14; height: 14.14 
+                            rotation: 45
+                            color: theme.shadow 
+                        }
+                    }
+                }
             }
-            Column {
-                anchors.right: parent.right; anchors.rightMargin: 4; anchors.top: parent.top; anchors.bottom: parent.bottom
-                anchors.topMargin: 4; anchors.bottomMargin: 4; spacing: 12; clip: true
-                Repeater { model: Math.ceil(maxPaperHeight / 18); Rectangle { width: 6; height: 6; radius: 3; color: "transparent"; border.color: theme.fgMuted } }
+        }
+
+        // --- 2. PAPER LAYER ---
+        Item {
+            id: paperWrapper
+            height: targetPaperHeight > 0 ? targetPaperHeight : currentPaperHeight
+            width: 340
+            x: 10 // Centered exactly under the hardware slot
+            anchors.top: parent.top
+
+            // A. Paper Teeth (Drawn FIRST so the solid paper masks the upper half)
+            Row {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: -10 // Exactly centers the squares on the bottom line
+                anchors.left: parent.left
+                Repeater {
+                    model: 17 // 17 teeth * 20px = perfectly 340px
+                    Item {
+                        width: 20; height: 20
+                        Rectangle { 
+                            anchors.centerIn: parent
+                            width: 14.14; height: 14.14 
+                            rotation: 45; 
+                            color: theme.bgDim; 
+                            border.color: theme.fgMuted; 
+                            border.width: 1
+                        }
+                    }
+                }
             }
-            
+
+            // B. Solid Paper Overlay (Drawn SECOND to overlap and mask the teeth)
+            Rectangle {
+                id: paperSolid
+                anchors.fill: parent
+                color: theme.bgDim
+
+                // Side borders seamlessly meet the corners of the first and last tooth
+                Rectangle { anchors.left: parent.left; width: 1; height: parent.height; color: theme.fgMuted }
+                Rectangle { anchors.right: parent.right; width: 1; height: parent.height; color: theme.fgMuted }
+
+                // Perforation holes
+                Column {
+                    anchors.left: parent.left; anchors.leftMargin: 4; anchors.top: parent.top; anchors.bottom: parent.bottom
+                    anchors.topMargin: 4; anchors.bottomMargin: 4; spacing: 12; clip: true
+                    Repeater { model: Math.ceil(maxPaperHeight / 18); Rectangle { width: 6; height: 6; radius: 3; color: "transparent"; border.color: theme.fgMuted } }
+                }
+                Column {
+                    anchors.right: parent.right; anchors.rightMargin: 4; anchors.top: parent.top; anchors.bottom: parent.bottom
+                    anchors.topMargin: 4; anchors.bottomMargin: 4; spacing: 12; clip: true
+                    Repeater { model: Math.ceil(maxPaperHeight / 18); Rectangle { width: 6; height: 6; radius: 3; color: "transparent"; border.color: theme.fgMuted } }
+                }
+            }
+
+            // C. Content
             Text {
-                anchors.centerIn: parent
+                anchors.centerIn: paperSolid
                 visible: printerWindow.allNotifications.length === 0
                 text: "*** NO NEW LOGS ***"
                 color: theme.fg
@@ -221,11 +304,11 @@ PanelWindow {
 
             ListView {
                 id: paperList
-                anchors.fill: parent
-                anchors.bottomMargin: 8 
+                anchors.fill: paperSolid
+                anchors.bottomMargin: 12 
                 anchors.leftMargin: 18; anchors.rightMargin: 18
                 clip: true
-                spacing: 8
+                spacing: 0 
                 
                 visible: printerWindow.allNotifications.length > 0
                 model: printerWindow.currentNotifications
@@ -245,7 +328,6 @@ PanelWindow {
                             printerWindow.updateModel();
                             
                             paperList.currentIndex = (toAdd - 1); 
-                            printTimer.start();
                         } else {
                             decrementCurrentIndex();
                         }
@@ -271,54 +353,114 @@ PanelWindow {
                         anchors.centerIn: parent
                         visible: parent.isTopReached
                         text: "*** SYSTEM LOG_PRINT ***\n" + Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
-                        color: theme.fg 
+                        color: theme.fg
                         font.family: "monospace"
                         font.pixelSize: 10; font.weight: Font.Bold; horizontalAlignment: Text.AlignHCenter
                     }
-                    Rectangle { 
+                    Text {
                         visible: parent.isTopReached
-                        anchors.bottom: parent.bottom; anchors.bottomMargin: 8; 
-                        anchors.horizontalCenter: parent.horizontalCenter; 
-                        width: parent.width - 36; height: 1; color: theme.fg; opacity: 0.3; border.width: 1; border.color: theme.fg 
+                        anchors.bottom: parent.bottom; anchors.bottomMargin: 8;
+                        anchors.horizontalCenter: parent.horizontalCenter;
+                        text: "========================================"
+                        color: theme.fg; opacity: 0.5; font.family: "monospace"; font.pixelSize: 10
+                        clip: true; width: parent.width - 24
                     }
                 }
 
                 delegate: Rectangle {
                     id: delegateRoot
                     width: ListView.view.width
-                    height: delegateCol.height + 16
-                    radius: 2
+                    height: delegateCol.height + 24
                     
+                    color: isSelected ? theme.fg : "transparent"
                     property bool isSelected: ListView.isCurrentItem || hoverArea.containsMouse
-                    color: isSelected ? theme.fg : "transparent" 
 
                     function getTextColor() {
                         if (isSelected) return theme.bgDim; 
-                        if (modelData.urgency === 2) return theme.red; 
-                        if (modelData.urgency === 0) return theme.fgMuted; 
-                        return theme.fg; 
+                        if (modelData.urgency === 2) return theme.red;
+                        if (modelData.urgency === 0) return theme.fgMuted;
+                        return theme.fg;
                     }
 
                     Column {
                         id: delegateCol
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.top: parent.top
+                        anchors.topMargin: 12
                         anchors.left: parent.left; anchors.right: parent.right
-                        anchors.margins: 10
+                        anchors.leftMargin: 10; anchors.rightMargin: 10
                         spacing: 4
-                        
-                        Text { 
-                            text: "[" + modelData.app + "] " + modelData.title 
-                            color: delegateRoot.getTextColor()
-                            font.family: "monospace"
-                            font.pixelSize: 11; font.weight: Font.Bold; wrapMode: Text.Wrap; width: parent.width 
+
+                        Item {
+                            width: parent.width
+                            height: appText.height
+
+                            Text {
+                                id: appText
+                                anchors.left: parent.left
+                                text: modelData.app
+                                color: delegateRoot.getTextColor()
+                                font.family: "monospace"
+                                font.pixelSize: 11
+                                font.weight: Font.Bold
+                            }
+
+                            Text {
+                                id: urgText
+                                anchors.right: parent.right
+                                text: modelData.urgency === 2 ? "CRT" : (modelData.urgency === 0 ? "LOW" : "NRM")
+                                color: delegateRoot.getTextColor()
+                                font.family: "monospace"
+                                font.pixelSize: 11
+                            }
+
+                            Text {
+                                anchors.left: appText.right
+                                anchors.right: urgText.left
+                                anchors.leftMargin: 6
+                                anchors.rightMargin: 6
+                                text: "................................................................................"
+                                color: delegateRoot.getTextColor()
+                                font.family: "monospace"
+                                font.pixelSize: 11
+                                opacity: 0.3
+                                clip: true
+                            }
                         }
-                        Text { 
-                            text: modelData.body 
+
+                        Text {
+                            text: modelData.title
                             color: delegateRoot.getTextColor()
                             font.family: "monospace"
-                            font.pixelSize: 11; wrapMode: Text.Wrap; width: parent.width; 
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                            wrapMode: Text.Wrap
+                            width: parent.width
+                        }
+
+                        Text {
+                            text: modelData.body
+                            color: delegateRoot.getTextColor()
+                            font.family: "monospace"
+                            font.pixelSize: 11
+                            wrapMode: Text.Wrap
+                            width: parent.width
                             opacity: delegateRoot.isSelected ? 1.0 : (modelData.urgency === 2 ? 1.0 : 0.8)
+                            visible: text.length > 0
                         }
+                    }
+
+                    Text {
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 2
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+                        color: delegateRoot.getTextColor()
+                        font.family: "monospace"
+                        font.pixelSize: 10
+                        opacity: delegateRoot.isSelected ? 0.3 : 0.15
+                        clip: true
+                        width: parent.width - 20
+                        visible: index < ListView.view.count - 1
                     }
 
                     MouseArea {
@@ -327,18 +469,10 @@ PanelWindow {
                         onClicked: printerWindow.toggleState()
                     }
                 }
-                 
+
                 footer: Item {
                     width: ListView.view.width; height: 60
                     Text { anchors.centerIn: parent; text: "--- END OF LOG ---"; color: theme.fg; font.family: "monospace"; font.pixelSize: 10; font.weight: Font.Bold }
-                }
-            }
-
-            Row {
-                anchors.bottom: parent.bottom; anchors.bottomMargin: -4; width: parent.width; clip: true
-                Repeater {
-                    model: Math.ceil(parent.width / 8)
-                    Rectangle { width: 8; height: 8; radius: 4; rotation: 45; color: "transparent"; border.color: theme.fgMuted; border.width: 1 }
                 }
             }
         }

@@ -10,6 +10,8 @@
     inputs.nixcord.homeModules.nixcord
     inputs.nixvim.homeModules.nixvim
     inputs.niri.homeModules.niri
+    inputs.sops-nix.homeManagerModules.sops
+    ./quickshell/quickshell.nix
     ./hyprland.nix
     ./terminal.nix
     ./launcher.nix
@@ -43,7 +45,9 @@
     filezilla # just for the mc server >.>
     discordo
     cliphist
-    hyfetch
+    windsurf
+    blender
+    hyfetch # Gay af
     hannom
     p7zip
     clang
@@ -52,11 +56,31 @@
     lsd
   ];
 
+  sops = {
+    defaultSopsFile = ../secrets/github.yaml;
+    age.keyFile = "/home/puppy/.config/sops/age/keys.txt";
+
+    secrets = {
+      github_token = { };
+      git_email = { };
+    };
+  };
+
   services.hyprpaper.enable = true;
   programs.prismlauncher.enable = true;
-  # services.mako.enable = true; # qs manages my notifs 
+  # services.mako.enable = true; # qs manages my notifs
+
+  programs.git = {
+    enable = true;
+    userName = "CurryFavour";
+
+    extraConfig = {
+      user.email = "$(cat ${config.sops.secrets.git_email.path})";
+      credential.helper = "!f() { echo password=$(cat ${config.sops.secrets.github_token.path}); }; f";
+      init.defaultBranch = "main";
+    };
+  };
 
   gtk.gtk4.theme = config.gtk.theme;
   stylix.targets.qt.enable = false;
-
 }

@@ -3,56 +3,42 @@ import Quickshell
 import Quickshell.Io
 import "Panels"
 import "Widgets"
+import "Components"
 
 ShellRoot {
     id: root
 
-    // Instantiate the Master Palette
-    Theme {
-        id: globalTheme
+    // Modular Shell Container handles all UI components
+    ShellContainer {
+        id: shellContainer
+        anchors.fill: parent
     }
-
-    // Connect the terminal command `qs ipc call launcher toggle` to our AppLauncher
+    
+    // Top Bar (separate as it's always visible)
+    TopBar {
+        id: bar
+        theme: shellContainer.theme
+    }
+    
+    // IPC Handlers (need to be in main shell context)
     IpcHandler {
         target: "launcher"
         function toggle() {
-            launcher.toggleState();
+            shellContainer.panelManager.launcher.toggleState();
         }
     }
-
-    // Render the Top Bar
-    TopBar {
-        id: bar
-        theme: globalTheme
-    }
-
-    // Render the hidden Pop-Up Launcher
-    AppLauncher {
-        id: launcher
-        theme: globalTheme
-    }
-
-    ClipboardManager {
-        id: clipboardWindow
-        theme: globalTheme
-    }
-
+    
     IpcHandler {
         target: "clipboard"
         function toggle() {
-            clipboardWindow.toggleState();
+            shellContainer.panelManager.clipboard.toggleState();
         }
     }
-
-    Notifications {
-          id: notifications
-        theme: globalTheme
-    }
-
+    
     IpcHandler {
         target: "notification"
         function toggle() {
-            notifications.toggleState();
+            shellContainer.panelManager.notifications.toggleState();
         }
     }
 }

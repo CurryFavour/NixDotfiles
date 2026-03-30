@@ -13,10 +13,10 @@
       monitor = ",preferred,auto,1";
 
       general = {
-        gaps_in = 5;
-        gaps_out = 10;
+        gaps_in = 10;
+        gaps_out = 15;
         border_size = 1;
-        layout = "dwindle";
+        layout = "master";
 
         "col.active_border" = lib.mkForce "rgb(${config.lib.stylix.colors.base05})";
         "col.inactive_border" = lib.mkForce "rgb(${config.lib.stylix.colors.base00})";
@@ -31,15 +31,17 @@
 
       decoration = {
         rounding = 0;
+        active_opacity = 1;
+        inactive_opacity = 1;
         blur = {
-          enabled = true;
+          enabled = false;
           size = 3;
           passes = 2;
         };
       };
 
       animations = {
-        enabled = false;
+        enabled = true;
 
         bezier = [
           "overshoot, 0.05, 0.9, 0.1, 1.1"
@@ -74,7 +76,6 @@
 
       # Defaults
       "$mainMod" = "SUPER";
-      "$SSDIR" = "~/Pictures/Screenshots"; # Still unused
       "$terminal" = config.sysopts.terminal;
       "$launcher" = config.sysopts.launcher;
       "$browser" = "firefox";
@@ -93,12 +94,14 @@
       "$audioplaypause" = "playerctl play-pause";
       "$audioplaynext" = "playerctl next";
       "$audioplayprev" = "playerctl previous";
+      "$kaomoji" = "cat kaolist.*.txt | rofi -dmenu -i -p 'kaomoji' | wl-copy";
 
       bind = [
         "$mainMod, T,       exec, $terminal"
         "$mainMod, A,       exec, $launcher"
         "$mainMod, V,       exec, $clipboardview"
         "$mainMod, B,       exec, $notificationview"
+        "$mainMod, U,       exec, $kaomoji"
         "$mainMod, Space,   exec, $launcher"
         "$mainMod, R,       exec, $wallpaperselector"
         "$mainMod, N,       exec, $screenshot"

@@ -4,7 +4,7 @@ import Quickshell
 Rectangle {
     id: batWidget
     width: 76
-    height: 26 // Matches the height of the cassette widget
+    height: 26
     anchors.verticalCenter: parent.verticalCenter
     
     property QtObject theme

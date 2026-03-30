@@ -1,5 +1,5 @@
 import QtQuick
-import Quickshell.Hyprland
+import "../Services"
 import "../Widgets"
 
 Row {
@@ -13,32 +13,30 @@ Row {
     anchors.leftMargin: 8
     spacing: 6
 
-    property int activeWsId: Hyprland.focusedMonitor ? Hyprland.focusedMonitor.activeWorkspace.id : 1
-    property int currentPage: Math.max(0, Math.floor((activeWsId - 1) / 5))
-    property int startWs: (currentPage * 5) + 1
+    WorkspaceService {
+        id: wsLogic
+    }
 
     Repeater {
         model: 5 
         delegate: RetroKey {
             theme: wsRow.theme
          
-            property int wsId: wsRow.startWs + index
-            property int wsCountTracker: Hyprland.workspaces.values.length
-            
-            property bool isActiveWorkspace: wsId === wsRow.activeWsId
-            property bool isOccupied: {
-                let dummyTrigger = wsCountTracker; 
-                return Hyprland.workspaces.values.some(w => w.id === wsId);
-            }
+            property int wsId: wsLogic.getWsId(index)
+            property bool isActiveWorkspace: wsLogic.activeWsId === wsId
+            property bool isOccupied: wsLogic.occupiedWorkspaceIds.includes(wsId)
             
             text: wsId.toString()
-            baseColor: isActiveWorkspace ? theme.yellow : (isOccupied ? theme.blue : theme.bgDim)
-            
             isActive: isActiveWorkspace               
             
-            fgColor: (isActiveWorkspace || isOccupied) ? theme.fg : theme.fgMuted
+            baseColor: isActiveWorkspace ? theme.yellow 
+                     : isOccupied ? theme.blue 
+                     : theme.bgDim
+                     
+            fgColor: (isActiveWorkspace || isOccupied) ? theme.fg 
+                   : theme.fgMuted
 
-            onClicked: Hyprland.dispatch("workspace " + wsId)
+            onClicked: wsLogic.switchWorkspace(wsId)
         }
     }
 }

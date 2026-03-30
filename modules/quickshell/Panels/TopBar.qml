@@ -1,34 +1,32 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland 
+import Quickshell.Hyprland
 import "../Widgets"
-import "../Services" 
+import "../Components"
+import "../Services"
 
 PanelWindow {
     id: bar
     property QtObject theme
 
     anchors { top: true; left: true; right: true }
-    implicitHeight: 32 
+    implicitHeight: 32
     color: theme.bg
 
-    Row {
+    TitleStripe {
+        id: topStripe
+        theme: bar.theme
         anchors.top: parent.top
         width: parent.width
-        height: 3 
-        Rectangle { width: parent.width / 5; height: parent.height; color: theme.green }
-        Rectangle { width: parent.width / 5; height: parent.height; color: theme.blue }
-        Rectangle { width: parent.width / 5; height: parent.height; color: theme.yellow }
-        Rectangle { width: parent.width / 5; height: parent.height; color: theme.orange }
-        Rectangle { width: parent.width / 5; height: parent.height; color: theme.red }
+        height: 3
     }
 
     Rectangle {
         anchors.bottom: parent.bottom
         width: parent.width
-        height: 2 
-        color: theme.fg 
+        height: 2
+        color: theme.fg
     }
 
     WorkspaceWidget {
@@ -42,32 +40,36 @@ PanelWindow {
     Bluetooth {
         id: bluetoothService
     }
-    
+
     Network {
         id: networkService
     }
-    
+
     Bat {
         id: batService
     }
 
     Row {
-        anchors.right: parent.right;
+        anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        anchors.verticalCenterOffset: 1;
+        anchors.verticalCenterOffset: 1
         anchors.rightMargin: 8
-        spacing: 6 
+        spacing: 6
 
-        WifiWidget {
+        ToggleIndicatorWidget {
             id: wifiWidget
             theme: bar.theme
             isOn: networkService.isOn
+            label: "WF"
+            activeColor: theme.green
         }
 
-        BluetoothWidget {
+        ToggleIndicatorWidget {
             id: btWidget
             theme: bar.theme
             isOn: bluetoothService.isOn
+            label: "BT"
+            activeColor: theme.blue
         }
 
         BatWidget {

@@ -19,9 +19,14 @@
         type = lib.types.bool;
         default = true;
       };
+      directory = lib.mkOption {
+        type = lib.types.str;
+        default = "~/Pictures/Screenshots";
+        description = "Directory where screenshots will be saved";
+      };
       exec = lib.mkOption {
         type = lib.types.str;
-        default = "hyprshot -m region -z -o ~/Pictures/Screenshots"; # TODO: Set the target dir in hyprland.nix
+        default = "hyprshot -m region -z -o ${config.sysopts.screenshot.directory}";
         readOnly = true;
       };
     };
