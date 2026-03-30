@@ -9,8 +9,8 @@ WM: Hyprland<br>
 Bar/Launcher/Clipboard/Notifications = Quickshell<br>
 
 Notes:
-it's a WIP, the quickshell configuration isn't integrated in my files yet, so you just gotta copy it to ~/.config. <br>
-Alsoo some of the modules are kinda broken, specially the one for notifications, im still workin on it <br>
+rebuilding should now auto-start the bar, Theming is also applied. Tho it only works well with light themes
+Notifications are now just a bit broken (improvement)
 
 Useful Binds:
 SUPER + T = Terminal <br>
