@@ -406,10 +406,12 @@ PanelWindow {
                 } else if (event.key === Qt.Key_Down || event.key === Qt.Key_J) {
                     if (idx < count - cols) wallpaperGrid.currentIndex = idx + cols
                 } else if (event.key === Qt.Key_Tab) {
+                    if (tabs === 0) return
                     let nextTab = (wallpaperService.currentTabIndex + 1) % tabs
                     wallpaperService.switchTab(nextTab)
                     wallpaperGrid.currentIndex = 0
                 } else if (event.key === Qt.Key_Backtab) {
+                    if (tabs === 0) return
                     let prevTab = (wallpaperService.currentTabIndex - 1 + tabs) % tabs
                     wallpaperService.switchTab(prevTab)
                     wallpaperGrid.currentIndex = 0

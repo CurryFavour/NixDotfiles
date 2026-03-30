@@ -10,9 +10,10 @@ Item {
     property var wallpaperTabs: []  
     property int currentIndex: 0
     property int currentTabIndex: 0
-    property string wallpaperDir: Qt.resolvedUrl("~/Pictures/Wallpapers")
+    property string wallpaperDir: "~/Pictures/Wallpapers"
     
     property string previewMetadata: ""
+    property string homePath: ""
     
     // --- CACHING PROPERTIES ---
     property bool isLoaded: false
@@ -20,6 +21,18 @@ Item {
 
     signal wallpaperChanged(string path)
     signal wallpaperListUpdated()
+
+    Process {
+        id: homeProcess
+        command: ["sh", "-c", "echo $HOME"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                wallpaperService.homePath = (text || "").trim()
+                wallpaperService.loadWallpapers()
+            }
+        }
+    }
 
     Process {
         id: wallpaperProcess
@@ -60,7 +73,7 @@ Item {
         command: [
             "sh",
             "-c",
-            "find /home/puppy/Pictures/Wallpapers -type f 2>/dev/null | grep -iE '\\.(jpg|jpeg|png|webp)$'"
+            "cd \"$HOME/Pictures/Wallpapers\" 2>/dev/null && find . -type f 2>/dev/null | grep -iE '\\.(jpg|jpeg|png|webp)$' | sed 's|^\\./||'"
         ]
         stdout: StdioCollector {
             id: listStdout
@@ -69,13 +82,13 @@ Item {
                 let lines = text.trim().split('\n').filter(p => p.length > 0)
                 
                 let tabs = {}
-                let basePath = "/home/puppy/Pictures/Wallpapers/"
+                let basePath = wallpaperService.homePath + "/Pictures/Wallpapers/"
                 
                 for (let line of lines) {
-                    let fullPath = line.trim()
-                    if (!fullPath || !fullPath.startsWith(basePath)) continue
+                    let relPath = line.trim()
+                    if (!relPath) continue
                     
-                    let relPath = fullPath.substring(basePath.length)
+                    let fullPath = basePath + relPath
                     let parts = relPath.split('/')
                     
                     let folderName = (parts.length === 1) ? "unsorted" : parts[0]
@@ -119,6 +132,10 @@ Item {
 
     // Now accepts a "forceRefresh" argument
     function loadWallpapers(forceRefresh = false) {
+        if (!homePath && !forceRefresh) {
+            // Wait for homePath to be set
+            return;
+        }
         if (isLoaded && !forceRefresh) {
             // Already cached, just skip
             return;
@@ -172,12 +189,13 @@ Item {
             return
         }
         
-        // 2. If not, spawn the process to fetch it
+        // 2. Cancel any running process to prevent race conditions
+        if (metaProcess.running) {
+            metaProcess.running = false
+        }
+        
+        // 3. Spawn the process to fetch metadata
         metaProcess.currentTarget = path
         metaProcess.running = true
-    }
-
-    Component.onCompleted: {
-        loadWallpapers()
     }
 }
