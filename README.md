@@ -23,7 +23,9 @@ SUPER + HJKL = Change focus <br>
 Control + Esc = Toggle quickshell <br>
 
 Capslock is disabled, holding it activates a layer that makes J and K mimic the left and right mouse buttons respectively. (You can just disable this in configuration.nix, it's the keyd thingie)<br>
-
+<br>
+NOTE: I'm still working on this, will try to update at least once a month <br>
+<br>
 Screenshots:
 ![image](SSes/ss00.webp)
 ![image](SSes/ss01.webp)
