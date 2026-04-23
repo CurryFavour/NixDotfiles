@@ -1,3 +1,5 @@
+Alas I'm afflicted with a terrible illness that makes me distro hop weekly, if I ever return to nix ill prooobably continue with this.<br>
+
 These be my personal nixos configuration files, I didnt test it much so it might break in other systems. <br>
 Btw you probably wanna remove the hardware-configuration.nix file before using it yerself <br>
 
