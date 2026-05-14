@@ -23,6 +23,7 @@
       };
 
       exec-once = [
+        "swww-daemon"
         "cliphist"
         "wl-paste --type text --watch cliphist store"
         "wl-paste --type image --watch cliphist store"

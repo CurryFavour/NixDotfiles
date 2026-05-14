@@ -121,7 +121,7 @@
 
   stylix = {
     enable = true;
-    image = ./Wallpapers/gruvbox_light_linux.png;
+    image = ./Wallpapers/GruvboxLight/gruvbox_light_linux.png;
     base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-light-soft.yaml";
     override = {
       base00 = "e1d6a9";
