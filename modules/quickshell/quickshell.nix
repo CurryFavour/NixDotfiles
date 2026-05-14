@@ -82,6 +82,16 @@ in
   xdg.configFile."quickshell" = {
     source = quickshell-config;
     recursive = true;
+    onChange = ''
+      export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+
+      while ${pkgs.quickshell}/bin/quickshell kill --path ${config.xdg.configHome}/quickshell/shell.qml; do
+        :
+      done
+
+      ${pkgs.procps}/bin/pkill -f '.quickshell-wra|quickshell.*shell.qml' || true
+      ${pkgs.systemd}/bin/systemctl --user restart quickshell.service || true
+    '';
   };
 
   systemd.user.services.quickshell = {
@@ -89,8 +99,17 @@ in
       Description = "Quickshell Desktop Component";
       After = [ "graphical-session.target" ];
       PartOf = [ "graphical-session.target" ];
+      X-Restart-Triggers = [ "${quickshell-config}" ];
+      X-SwitchMethod = "stop-start";
     };
     Service = {
+      ExecStartPre = "${pkgs.writeShellScript "quickshell-kill-old" ''
+        while ${pkgs.quickshell}/bin/quickshell kill --path ${config.xdg.configHome}/quickshell/shell.qml; do
+          :
+        done
+
+        ${pkgs.procps}/bin/pkill -f '.quickshell-wra|quickshell.*shell.qml' || true
+      ''}";
       ExecStart = "${pkgs.quickshell}/bin/quickshell --path ${config.xdg.configHome}/quickshell/shell.qml";
       Restart = "never";
       RestartSec = "2";
