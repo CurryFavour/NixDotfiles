@@ -8,6 +8,7 @@ Item {
     property var launcher: null
     property var clipboard: null
     property var notifications: null
+    property var wallpaper: null
 
     Component.onCompleted: {
         createPanels()
@@ -22,6 +23,7 @@ Item {
         launcher = launcherComponent.createObject(panelManager, { theme: theme })
         clipboard = clipboardComponent.createObject(panelManager, { theme: theme })
         notifications = notificationsComponent.createObject(panelManager, { theme: theme })
+        wallpaper = wallpaperComponent.createObject(panelManager, { theme: theme })
     }
 
     Component {
@@ -37,5 +39,10 @@ Item {
     Component {
         id: notificationsComponent
         Notifications {}
+    }
+
+    Component {
+        id: wallpaperComponent
+        WallpaperPanel {}
     }
 }

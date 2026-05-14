@@ -1,7 +1,6 @@
 import QtQuick
 
 QtObject {
-    // Soon will be managed by stylix
     property color base00: "#e1d6a9"
     property color base01: "#ebdbb2"
     property color base02: "#d5c4a1"

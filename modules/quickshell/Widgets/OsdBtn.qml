@@ -13,7 +13,6 @@ Rectangle {
     color: baseColor
     border.color: theme.fg; border.width: 2; radius: 2
 
-    // Bevels
     Rectangle {
         anchors.top: parent.top; anchors.left: parent.left; anchors.right: parent.right
         anchors.margins: 2; height: 1; color: theme.highlight; opacity: osdMouse.pressed ? 0.0 : 0.6

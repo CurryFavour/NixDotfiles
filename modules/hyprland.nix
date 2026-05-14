@@ -81,7 +81,7 @@
       "$browser" = "firefox";
       "$clipboardview" = "qs ipc call clipboard toggle";
       "$notificationview" = "qs ipc call notification toggle";
-      "$wallpaperselector" = "$ipc wallpaper toggle";
+      "$wallpaperselector" = "qs ipc call wallpaper toggle";
       "$screenshot" = config.sysopts.screenshot.exec;
       "$colorpicker" = config.sysopts.colorpicker.exec;
       "$restartshell" = "pkill .quickshell-wra || qs";

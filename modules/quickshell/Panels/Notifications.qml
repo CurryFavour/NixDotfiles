@@ -184,9 +184,9 @@ PanelWindow {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         width: 360; height: 6
-        color: "#111" 
+        color: theme.shadow
         radius: 2
-        border.color: theme.shadow || "#333"; border.width: 1
+        border.color: theme.shadow; border.width: 1
         z: 2 
     }
 
@@ -203,23 +203,20 @@ PanelWindow {
             id: printerHover
         }
 
-        // --- 1. SOLID DROP SHADOW ---
         Item {
             id: shadowWrapper
             height: targetPaperHeight > 0 ? targetPaperHeight + 6 : currentPaperHeight + 10 
             width: 340
             x: 14
             anchors.top: parent.top
-            anchors.topMargin: 0 // Pushes the shadow 6px below the paper
+            anchors.topMargin: 0
             visible: currentPaperHeight > 0
             
-            // Solid rectangular shadow block[cite: 2]
             Rectangle {
                 anchors.fill: parent
                 color: theme.shadow 
             }
 
-            // Solid jagged teeth for the shadow[cite: 2]
             Row {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: -10 
@@ -239,21 +236,19 @@ PanelWindow {
             }
         }
 
-        // --- 2. PAPER LAYER ---
         Item {
             id: paperWrapper
             height: targetPaperHeight > 0 ? targetPaperHeight : currentPaperHeight
             width: 340
-            x: 10 // Centered exactly under the hardware slot
+            x: 10
             anchors.top: parent.top
 
-            // A. Paper Teeth (Drawn FIRST so the solid paper masks the upper half)
             Row {
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: -10 // Exactly centers the squares on the bottom line
+                anchors.bottomMargin: -10
                 anchors.left: parent.left
                 Repeater {
-                    model: 17 // 17 teeth * 20px = perfectly 340px
+                    model: 17
                     Item {
                         width: 20; height: 20
                         Rectangle { 
@@ -268,17 +263,14 @@ PanelWindow {
                 }
             }
 
-            // B. Solid Paper Overlay (Drawn SECOND to overlap and mask the teeth)
             Rectangle {
                 id: paperSolid
                 anchors.fill: parent
                 color: theme.bgDim
 
-                // Side borders seamlessly meet the corners of the first and last tooth
                 Rectangle { anchors.left: parent.left; width: 1; height: parent.height; color: theme.fgMuted }
                 Rectangle { anchors.right: parent.right; width: 1; height: parent.height; color: theme.fgMuted }
 
-                // Perforation holes
                 Column {
                     anchors.left: parent.left; anchors.leftMargin: 4; anchors.top: parent.top; anchors.bottom: parent.bottom
                     anchors.topMargin: 4; anchors.bottomMargin: 4; spacing: 12; clip: true
@@ -291,7 +283,6 @@ PanelWindow {
                 }
             }
 
-            // C. Content
             Text {
                 anchors.centerIn: paperSolid
                 visible: printerWindow.allNotifications.length === 0

@@ -22,7 +22,6 @@ Rectangle {
         anchors.margins: 2; height: 1; color: theme.highlight; opacity: 0.5 
     }
 
-    // -- BATTERY ICON --
     Item {
         anchors.left: parent.left
         anchors.leftMargin: 6
@@ -42,7 +41,6 @@ Rectangle {
             z: 1
         }
 
-        // Main Battery Body
         Rectangle {
             id: batBody
             anchors.left: parent.left
