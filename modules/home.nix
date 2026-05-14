@@ -23,8 +23,8 @@
     ./wine.nix
   ];
 
-  home.username = "puppy";
-  home.homeDirectory = "/home/puppy";
+  home.username = "nya";
+  home.homeDirectory = "/home/nya";
   home.stateVersion = "25.11";
 
   home.sessionVariables = {
@@ -49,6 +49,7 @@
     blender
     hyfetch # Gay af
     hannom
+    gowall
     p7zip
     clang
     kitty
@@ -58,7 +59,7 @@
 
   sops = {
     defaultSopsFile = ../secrets/github.yaml;
-    age.keyFile = "/home/puppy/.config/sops/age/keys.txt";
+    age.keyFile = "/home/nya/.config/sops/age/keys.txt";
 
     secrets = {
       github_token = { };
