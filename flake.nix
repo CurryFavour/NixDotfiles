@@ -23,10 +23,6 @@
       url = "github:FlameFlag/nixcord";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -46,7 +42,6 @@
       self,
       nixpkgs,
       stylix,
-      sops-nix,
       home-manager,
       ...
     }@inputs:
@@ -57,7 +52,6 @@
         modules = [
           stylix.nixosModules.stylix
           home-manager.nixosModules.home-manager
-          sops-nix.nixosModules.sops
           (
             { ... }:
             {

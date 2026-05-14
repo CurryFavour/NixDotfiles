@@ -116,8 +116,6 @@
       firefox
       kitty
       tree
-      sops
-      age
     ];
   };
 

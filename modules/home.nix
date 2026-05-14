@@ -10,7 +10,6 @@
     inputs.nixcord.homeModules.nixcord
     inputs.nixvim.homeModules.nixvim
     inputs.niri.homeModules.niri
-    inputs.sops-nix.homeManagerModules.sops
     ./quickshell/quickshell.nix
     ./hyprland.nix
     ./terminal.nix
@@ -57,16 +56,6 @@
     lsd
   ];
 
-  sops = {
-    defaultSopsFile = ../secrets/github.yaml;
-    age.keyFile = "/home/nya/.config/sops/age/keys.txt";
-
-    secrets = {
-      github_token = { };
-      git_email = { };
-    };
-  };
-
   services.hyprpaper.enable = false;
   services.swww.enable = true;
   programs.prismlauncher.enable = true;
@@ -78,9 +67,7 @@
     settings = {
       user = {
         name = "CurryFavour";
-        email = "$(cat ${config.sops.secrets.git_email.path})";
       };
-      credential.helper = "!f() { echo password=$(cat ${config.sops.secrets.github_token.path}); }; f";
       init.defaultBranch = "main";
     };
   };
