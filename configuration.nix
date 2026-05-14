@@ -33,10 +33,14 @@
   };
 
   hardware = {
-    # opentabletdriver.enable = true;
+    opentabletdriver.enable = true;
+    bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+    };
   };
 
-  networking.hostName = "puppy";
+  networking.hostName = "luccaww";
   networking.networkmanager.enable = true;
 
   time.timeZone = "Brazil/East";
@@ -71,18 +75,28 @@
   services.displayManager.ly.enable = true;
 
   services.keyd = {
-    # if hold capslock, J/K act as left/right mouse buttons
-    enable = true; # (Also disables the useless capslock)
+    enable = true;
     keyboards = {
-      default = {
-        ids = [ "*" ];
+      internal_keyboard = {
+        ids = [ "0001:0001:09b4e68d" ];
         settings = {
           main = {
             capslock = "layer(mouse)";
+            leftalt = "layer(brokey)"; # Keyboard brokes
           };
+
           mouse = {
             j = "leftmouse";
             k = "rightmouse";
+          };
+
+          brokey = {
+            u = "o";
+            i = "p";
+            k = "l";
+            m = ".";
+            "[" = "'";
+            "8" = "9";
           };
         };
       };
@@ -94,7 +108,7 @@
     "/share/xdg-desktop-portal"
   ];
 
-  users.users.puppy = {
+  users.users.nya = {
     isNormalUser = true;
     shell = pkgs.zsh;
     extraGroups = [ "wheel" ];
@@ -109,13 +123,13 @@
 
   stylix = {
     enable = true;
-    image = ./Wallpapers/imgick/gruvboxgram.jpg;
+    image = ./Wallpapers/gruvbox_light_linux.png;
     base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-light-soft.yaml";
     override = {
       base00 = "e1d6a9";
       base01 = "e1d6a9";
     };
-    polarity = "light";
+    polarity = "dark";
     autoEnable = true;
 
     icons = {

@@ -72,7 +72,7 @@
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
             home-manager.extraSpecialArgs = { inherit inputs; };
-            home-manager.users.puppy = import ./modules/home.nix;
+            home-manager.users.nya = import ./modules/home.nix;
           }
           ./configuration.nix
         ];
